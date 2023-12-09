@@ -1,0 +1,74 @@
+version: "3"
+
+services:
+  mariadb:
+    image: mariadb:10.6.16
+    container_name: mariadb
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_general_ci
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    restart: unless-stopped
+    volumes:
+      - ./data/mariadb:/var/lib/mysql
+
+  elasticsearch:
+    image: elasticsearch:7.17.15
+    container_name: elasticsearch
+    environment:
+      - bootstrap.memory_lock=false
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms128m -Xmx128m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    command:
+      - /bin/sh
+      - -c
+      - "./bin/elasticsearch-plugin list | grep -q analysis-kuromoji
+        || ./bin/elasticsearch-plugin install analysis-kuromoji;
+        ./bin/elasticsearch-plugin list | grep -q analysis-icu
+        || ./bin/elasticsearch-plugin install analysis-icu;
+        /usr/local/bin/docker-entrypoint.sh"
+    restart: unless-stopped
+
+  wikijs:
+    image: ghcr.io/requarks/wiki:2.5.300
+    container_name: wikijs
+    depends_on:
+      - mariadb
+    environment:
+      - DB_TYPE=mariadb
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_USER=${MYSQL_USER}
+      - DB_PASS=${MYSQL_PASSWORD}
+      - DB_NAME=${MYSQL_DATABASE}
+    restart: unless-stopped
+    volumes:
+      - ./data/wikijs:/wiki/storage
+
+  nginx:
+    image: nginx:20231209-01
+    container_name: nginx
+    build:
+      context: ./dockerfile/nginx
+      dockerfile: Dockerfile
+    ports:
+      - "443:443"
+    volumes:
+      - ./log/nginx:/var/log/nginx
+      - ./cert:/etc/nginx/cert
+    restart: always
+    depends_on:
+      - wikijs
+    environment:
+      - URL_WIKIJS=${URL_WIKIJS}
+      - PATH_SERVERCRT=${PATH_SERVERCRT}
+      - PATH_SERVERKEY=${PATH_SERVERKEY}
+      - PATH_CLIENTCRT=${PATH_CLIENTCRT}
+
+
