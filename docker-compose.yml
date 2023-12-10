@@ -48,6 +48,7 @@ services:
       - DB_PASS=${MYSQL_PASSWORD}
       - DB_NAME=${MYSQL_DATABASE}
     restart: unless-stopped
+    user: "1001:1002"
     volumes:
       - ./data/wikijs:/wiki/storage
 
