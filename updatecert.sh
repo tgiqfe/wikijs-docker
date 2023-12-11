@@ -5,7 +5,7 @@
 
 # check param
 echo "Mail Address: ${MAIL_ADDRESS}"
-echo "Server FQDN: ${$SERVER_FQDN}"
+echo "Server FQDN: ${SERVER_FQDN}"
 
 certDir=$(pwd)/cert
 
