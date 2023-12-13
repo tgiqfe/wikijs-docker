@@ -21,6 +21,8 @@ docker container run -i --rm \
     --agree-tos \
     --rsa-key-size 4096 \
     -a standalone \
-    -d $SERVER_FQDN
+    -d $SERVER_FQDN_WWW \
+    -d $SERVER_FQDN_WEB \
+    -d $SERVER_FQDN_GIT
 
 sudo iptables -I DOCKER-USER -i ens4 -j JPFILTER
