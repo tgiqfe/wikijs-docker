@@ -51,6 +51,13 @@ services:
     #ports:
     #  - "80:3000"
 
+  gogs:
+    image: gogs/gogs:0.13
+    container_name: gogs
+    volumes:
+      - ./data/gogs:/data
+    restart: unless-stopped
+
   nginx:
     image: nginx:20231209-01
     container_name: nginx
@@ -65,8 +72,10 @@ services:
       - "443:443"
     depends_on:
       - wikijs
+      - gogs
     environment:
       - URL_WIKIJS=${URL_WIKIJS}
+      - URL_GOGS=${URL_GOGS}
       - PATH_SERVERCRT=${PATH_SERVERCRT}
       - PATH_SERVERKEY=${PATH_SERVERKEY}
       - PATH_CLIENTCRT=${PATH_CLIENTCRT}
